@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">RegionDetector</string>
+    <string name="china_beijing">北京</string>
+    <string name="china_tianjin">天津</string>
+    <string name="china_shanghai">上海</string>
+    <string name="china_chongqing">重庆</string>
+    <string name="china_hebei">河北</string>
+    <string name="china_shanxi">山西</string>
+    <string name="china_liaoning">辽宁</string>
+    <string name="china_jilin">吉林</string>
+    <string name="china_heilongjiang">黑龙江</string>
+    <string name="china_jiangsu">江苏</string>
+    <string name="china_zhejiang">浙江</string>
+    <string name="china_anhui">安徽</string>
+    <string name="china_fujian">福建</string>
+    <string name="china_jiangxi">江西</string>
+    <string name="china_shandong">山东</string>
+    <string name="china_henan">河南</string>
+    <string name="china_hubei">湖北</string>
+    <string name="china_hunan">湖南</string>
+    <string name="china_guangdong">广东</string>
+    <string name="china_hainan">海南</string>
+    <string name="china_sichuan">四川</string>
+    <string name="china_guizhou">贵州</string>
+    <string name="china_yunnan">云南</string>
+    <string name="china_shaanxi">陕西</string>
+    <string name="china_gansu">甘肃</string>
+    <string name="china_qinghai">青海</string>
+    <string name="china_taiwan">台湾</string>
+    <string name="china_neimenggu">内蒙古</string>
+    <string name="china_guangxi">广西</string>
+    <string name="china_xizang">西藏</string>
+    <string name="china_ningxia">宁夏</string>
+    <string name="china_xinjiang">新疆</string>
+    <string name="china_xianggang">香港</string>
+</resources>
