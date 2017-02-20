@@ -21,6 +21,10 @@
 * ...
 
 ---
+##原理介绍
+[实现思路介绍](http://blog.csdn.net/huweijian5/article/details/56047587)
+
+---
 ##使用说明
 * 布局xml中添加：
 ```
