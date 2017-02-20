@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/m_fitcenter"
+        android:title="居中" />
+    <item
+        android:id="@+id/m_toggle"
+        android:title="切换地图" />
+    <item
+        android:id="@+id/m_change_icon"
+        android:title="更换图标" />
+
+    <!--二级菜单-->
+    <item
+        android:id="@+id/m_detect"
+        android:orderInCategory="3"
+        android:title="检测模式">
+        <menu>
+            <!-- android:alphabeticShortcut:菜单选择的快捷键-->
+            <item
+                android:id="@+id/m_mode_center"
+                android:alphabeticShortcut="n"
+                android:title="中心定位检测"
+                android:visible="true" />
+            <item
+                android:id="@+id/m_mode_click"
+                android:alphabeticShortcut="g"
+                android:title="手动点击检测"
+                android:visible="true" />
+        </menu>
+    </item>
+</menu>

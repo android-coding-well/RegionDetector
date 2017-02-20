@@ -131,6 +131,11 @@ public abstract class BaseSurfaceView extends SurfaceView implements SurfaceHold
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        /*Canvas canvas = surfaceHolder.lockCanvas();
+        if(canvas != null) {
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            surfaceHolder.unlockCanvasAndPost(canvas);
+        }*/
         drawThread = new DrawThread(surfaceHolder);
         drawThread.start();
     }
@@ -193,13 +198,14 @@ public abstract class BaseSurfaceView extends SurfaceView implements SurfaceHold
             while (isRunning) {
                 try {
                     canvas = surfaceHolder.lockCanvas();
-                    //Log.i(TAG, "" + canvas);
                     if (canvas != null) {
                         drawBackground(canvas);
                         doDraw(canvas);
-                        if (drawPauseTime > 0) {
-                            Thread.sleep(drawPauseTime);//通过它来控制帧数执行一次绘制后休息50ms)
-                        }
+                    }
+                    if (drawPauseTime > 0) {
+                        Thread.sleep(drawPauseTime);//通过它来控制帧数执行一次绘制后休息50ms)
+                    }else{
+                        Thread.sleep(5);//休眠一小段时间避免while循环引发CPU被占满
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();

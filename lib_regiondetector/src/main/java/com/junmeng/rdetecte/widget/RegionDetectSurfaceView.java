@@ -42,25 +42,25 @@ import java.util.Map;
  * Created by HWJ on 2017/2/17.
  */
 
-public class RegionDetecteSurfaceView extends BaseSurfaceView {
-    private static final String TAG = "RegionDetecteSurface";
+public class RegionDetectSurfaceView extends BaseSurfaceView {
+    private static final String TAG = "RegionDetectSurface";
 
-    public interface OnRegionDetecteListener {
+    public interface OnRegionDetectListener {
         /**
          * 所有区域检测
          *
          * @param name
          */
-        void onRegionDetecte(String name);
+        void onRegionDetect(String name);
     }
 
-    public interface OnActivateRegionDetecteListener {
+    public interface OnActivateRegionDetectListener {
         /**
          * 激活区域检测
          *
          * @param name
          */
-        void onActivateRegionDetecte(String name);
+        void onActivateRegionDetect(String name);
     }
 
     public interface OnDoubleClickListener {
@@ -70,6 +70,19 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
          * @param scaleMode
          */
         void onDoubleClick(@ScaleMode int scaleMode);
+    }
+
+    /**
+     * 中心定位检测模式
+     */
+    public static final int REGION_DETECT_MODE_CENTER = 0;
+    /**
+     * 手动点击检测模式
+     */
+    public static final int REGION_DETECT_MODE_CLICK = 1;
+
+    @IntDef({REGION_DETECT_MODE_CENTER, REGION_DETECT_MODE_CLICK})
+    public @interface RegionDetectMode {
     }
 
     /**
@@ -95,104 +108,105 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
     public static final int CENTER_ICON_POSITION_BOTTOM = 1;
 
     @IntDef({CENTER_ICON_POSITION_CENTER, CENTER_ICON_POSITION_BOTTOM})
-    public @interface CenterIconPosition {
+    public @interface CenterIconLocationType {
     }
 
 
-    public RegionDetecteSurfaceView(Context context) {
-        this(context, null);
-    }
+    //模式设置
+    @CenterIconLocationType
+    private int centerIconLocationType = CENTER_ICON_POSITION_BOTTOM;
 
-    public RegionDetecteSurfaceView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
+    @RegionDetectMode
+    private int regionDetectMode = REGION_DETECT_MODE_CENTER;
 
+    private VectorDrawableCompat vectorDrawableCompat;
 
-    public RegionDetecteSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init(context);
-    }
+    private Paint paint = new Paint();
+    private OnRegionDetectListener onRegionListener;
+    private OnActivateRegionDetectListener onActivateRegionListener;
+    private OnDoubleClickListener onDoubleClickListener;
 
-    VectorDrawableCompat vectorDrawableCompat;
-    // HashMap<String, Region> areaRegions = new HashMap<>();
-    Paint paint = new Paint();
-    OnRegionDetecteListener onRegionListener;
-    OnActivateRegionDetecteListener onActivateRegionListener;
-    OnDoubleClickListener onDoubleClickListener;
+    private float scale = 1f;//实际缩放比例，相对于起始图片的缩放比例
 
-    float scale = 1f;//实际缩放比例，相对于起始图片的缩放比例
-
-    float originalScale = 1f;//最原始的缩放比例
+    private float originalScale = 1f;//最原始的缩放比例
     private float maxScale = 3.0f;//最大缩放比例
     private float minScale = originalScale;//最小缩放比例，最小默认为最合适的居中的比例，这里就不提供设置了
 
     //平移的差值，相对于起始位置的差值
-    float translateDx = 0;
-    float translateDy = 0;
+    private float translateDx = 0;
+    private float translateDy = 0;
 
-    float originalTranslateDx = 0;//最原始的平移差值
-    float originalTranslateDy = 0;//最原始的平移差值
+    private float originalTranslateDx = 0;//最原始的平移差值
+    private float originalTranslateDy = 0;//最原始的平移差值
 
     //屏幕宽高
-    int screenWidth = 0;
-    int screenHeight = 0;
+    private int screenWidth = 0;
+    private int screenHeight = 0;
 
     //屏幕中心点的坐标
-    float screenCenterX = 0;
-    float screenCenterY = 0;
+    private float screenCenterX = 0;
+    private float screenCenterY = 0;
 
     //地图原始宽高，与xml中vector的viewportWidth和viewportHeight一致
-    int mapOriginalWidth = 700;
-    int mapOriginalHeight = 600;
-
+    private int mapOriginalWidth = 700;
+    private int mapOriginalHeight = 600;
 
     //地图起始位置的中心坐标
-    float mapOriginalCenterX = mapOriginalWidth / 2f;
-    float mapOriginalCenterY = mapOriginalHeight / 2f;
+    private float mapOriginalCenterX = mapOriginalWidth / 2f;
+    private float mapOriginalCenterY = mapOriginalHeight / 2f;
 
     //中心定位点的图标
     private Bitmap centerIcon;
 
-    MoveGestureDetector moveGestureDetector;
-    ScaleGestureDetector scaleGestureDetector;
-    GestureDetector gestureDetector;
+    private MoveGestureDetector moveGestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
+    private GestureDetector gestureDetector;
 
 
     //地图的矩阵，用于缩放
-    Matrix mapPathMatrix = new Matrix();
+    private Matrix mapPathMatrix = new Matrix();
 
     //存放地图绘制path
-    HashMap<String, MapPathInfo> pathInfoMap = new HashMap<>();
+    private HashMap<String, MapPathInfo> pathInfoMap = new HashMap<>();
 
     //当前中心定位点指向的路径path的key值
-    String currentKey = "";
+    private String currentKey = "";
 
     //上一个中心定位点指向的路径path的key值
-    String lastKey = "";
+    private String lastKey = "";
 
+    //是否是debug模式，自己用
     private boolean isDebugMode = false;
 
-    int highlightColor = Color.YELLOW;
+    //区域默认的颜色
+    private int highlightColor = 0x80BB945A;
+    private int activateAreaColor = 0x802F8BBB;
+    private int normalAreaColor = 0x8069BBA8;
 
-    int activateAreaColor = Color.BLUE;
-
-    int normalAreaColor = Color.GRAY;
-
-
+    //中心定位点图标是否可见
     private boolean isCenterIconVisible = true;
 
-    private int centerIconPosition = CENTER_ICON_POSITION_BOTTOM;
-
-
-    private boolean isSupportDoubleScale = true;//是否支持双击缩放操作
-
+    //是否支持双击缩放操作
+    private boolean isSupportDoubleScale = true;
 
     private int animateTime = 300;//动画时间，ms
-
 
     private boolean isOpenCenterLocation = true;//是否启用中心定位点
 
     private String selectedActivateKey = "";//选中的激活区域（会高亮显示），只有在isOpenCenterLocation为false才生效
+
+    public RegionDetectSurfaceView(Context context) {
+        this(context, null);
+    }
+
+    public RegionDetectSurfaceView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public RegionDetectSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init(context);
+    }
 
     private void init(Context context) {
 
@@ -202,159 +216,30 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
 
         setAreaMap(R.drawable.ic_map_china, 700, 600);
 
-        centerIcon = CommonUtil.getBitmap(context, R.drawable.ic_location_24dp);
+        centerIcon = CommonUtil.getBitmapFromVectorDrawable(context, R.drawable.ic_location_24dp);
 
         initPaint();
-
     }
-
-    /**
-     * 初始化区域路径Map
-     */
-    private void initAreaPathMap(@NonNull VectorDrawableCompat vectorDrawableCompat) {
-        if (vectorDrawableCompat == null) {
-            return;
-        }
-        pathInfoMap.clear();
-        HashMap<String, Path> pathsMap = (HashMap<String, Path>) getAllPath(vectorDrawableCompat);
-        for (String key : pathsMap.keySet()) {
-            MapPathInfo mapPathInfo = new MapPathInfo(pathsMap.get(key));
-            pathInfoMap.put(key, mapPathInfo);
-        }
-    }
-
-    private void initPaint() {
-        paint.setColor(Color.RED);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(2);
-    }
-
 
     //******************************************开放接口*****************************************
 
     /**
-     * 设置选中的激活区域（在关闭中心定位点的情况下才生效，表现为高亮显示)
+     * 设置区域检测模式(支持中心定位检测和手动点击检测两种)
+     * 默认为中心定位检测
      *
-     * @param areaName
+     * @param DetectMode
      */
-    public void setSelectedAreaOnlyCloseCenterLocation(String areaName) {
-        if (TextUtils.isEmpty(areaName)) {
-            return;
-        }
-        selectedActivateKey = areaName;
-    }
-
-    /**
-     * 设置选中的激活区域（在关闭中心定位点的情况下才生效，表现为高亮显示)
-     *
-     * @param areaNameRes
-     */
-    public void setSelectedAreaOnlyCloseCenterLocation(@StringRes int areaNameRes) {
-        String areaName = getResources().getString(areaNameRes);
-        if (TextUtils.isEmpty(areaName)) {
-            return;
-        }
-        selectedActivateKey = areaName;
-    }
-
-    /**
-     * 是否启用中心定位点，关闭则如普通地图一样只能缩放位移
-     *
-     * @param isOpen
-     */
-    public void isOpenCenterLocation(boolean isOpen) {
-        isOpenCenterLocation = isOpen;
-        isCenterIconVisible = isOpen;
-    }
-
-
-    /**
-     * 设置缩放动画时间,默认300毫秒
-     *
-     * @param ms 毫秒
-     */
-    public void setAnimateTime(int ms) {
-        this.animateTime = ms;
-    }
-
-    /**
-     * 是否支持双击缩放操作,默认支持
-     *
-     * @param isSupport
-     */
-    public void isSupportDoubleClickScale(boolean isSupport) {
-        isSupportDoubleScale = isSupport;
-    }
-
-    /**
-     * 设置最大缩放比例（默认为最小的3倍），如果小于默认的最小比例则设置无效
-     *
-     * @param scale
-     */
-    public void setMaxScale(float scale) {
-        if (scale > originalScale) {
-            this.maxScale = scale;
-        }
-    }
-
-    /**
-     * 获得最大的缩放比例
-     *
-     * @return
-     */
-    public float getMaxScale() {
-        return maxScale;
-    }
-
-
-    /**
-     * 获得当前的缩放比例
-     *
-     * @return
-     */
-    public float getCurrentScale() {
-        return scale;
-    }
-
-    /**
-     * 获得最小的缩放比例
-     *
-     * @return
-     */
-    public float getMinScale() {
-        return originalScale;
-    }
-
-    /**
-     * 缩放地图
-     *
-     * @param scale
-     */
-    public void scaleMap(float scale) {
-        mapPathMatrix.postScale(scale, scale, mapOriginalCenterX, mapOriginalCenterY);
-        this.scale *= scale;
-        Log.i(TAG, "onScale: " + scale);
-
-    }
-
-    /**
-     * 平移地图
-     *
-     * @param translateDx
-     * @param translateDy
-     */
-    public void translateMap(float translateDx, float translateDy) {
-        this.translateDx = translateDx;
-        this.translateDy = translateDy;
+    public void setRegionDetectMode(@RegionDetectMode int DetectMode) {
+        this.regionDetectMode = DetectMode;
     }
 
     /**
      * 设置中心图标的定位位置
      *
-     * @param position 图标的定位中心位置
+     * @param locationType 图标的定位中心位置
      */
-    public void setCenterIconPosition(@CenterIconPosition int position) {
-        this.centerIconPosition = position;
+    public void setCenterIconLocationType(@CenterIconLocationType int locationType) {
+        this.centerIconLocationType = locationType;
         // invalidate();
     }
 
@@ -368,16 +253,6 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
             this.centerIcon = bitmap;
             // invalidate();
         }
-    }
-
-    /**
-     * 设置中心图标是否可见
-     *
-     * @param isVisible
-     */
-    public void setCenterIconVisibility(boolean isVisible) {
-        isCenterIconVisible = isVisible;
-        // invalidate();
     }
 
     /**
@@ -531,7 +406,7 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
      *
      * @param listener
      */
-    public void setOnActivateRegionDetecteListener(OnActivateRegionDetecteListener listener) {
+    public void setOnActivateRegionDetectListener(OnActivateRegionDetectListener listener) {
         this.onActivateRegionListener = listener;
     }
 
@@ -540,7 +415,7 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
      *
      * @param listener
      */
-    public void setOnRegionDetecteListener(OnRegionDetecteListener listener) {
+    public void setOnRegionDetectListener(OnRegionDetectListener listener) {
         this.onRegionListener = listener;
     }
 
@@ -568,6 +443,179 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         initAreaPathMap(vectorDrawableCompat);
         initScaleAndTranslate();
         //invalidate();
+    }
+
+    /**
+     * 获得当前所在区域名称
+     *
+     * @return
+     */
+    public String getCurrentAreaName() {
+        return currentKey;
+    }
+
+    /**
+     * 判断某个区域是否是激活区域
+     *
+     * @param areaName
+     * @return
+     */
+    public boolean isActivatedArea(String areaName) {
+        if (pathInfoMap.get(areaName) != null) {
+            return pathInfoMap.get(areaName).isActivated;
+        }
+        return false;
+    }
+
+    /**
+     * 设置选中的激活区域（在关闭中心定位点的情况下才生效，表现为高亮显示)
+     *
+     * @param areaName
+     */
+    public void setSelectedAreaOnlyCloseCenterLocation(String areaName) {
+        if (TextUtils.isEmpty(areaName)) {
+            return;
+        }
+        selectedActivateKey = areaName;
+    }
+
+    /**
+     * 设置选中的激活区域（在关闭中心定位点的情况下才生效，表现为高亮显示)
+     *
+     * @param areaNameRes
+     */
+    public void setSelectedAreaOnlyCloseCenterLocation(@StringRes int areaNameRes) {
+        String areaName = getResources().getString(areaNameRes);
+        if (TextUtils.isEmpty(areaName)) {
+            return;
+        }
+        selectedActivateKey = areaName;
+    }
+
+    /**
+     * 是否启用中心定位点，关闭则如普通地图一样只能缩放位移
+     * 在中心定位检测模式下设置有效
+     *
+     * @param isOpen
+     */
+    public void isOpenCenterLocation(boolean isOpen) {
+        if (regionDetectMode == REGION_DETECT_MODE_CENTER) {
+            isOpenCenterLocation = isOpen;
+            isCenterIconVisible = isOpen;
+        }
+
+    }
+
+    /**
+     * 检测坐标所在的区域
+     *
+     * @param x
+     * @param y
+     * @return 检测到的区域名称
+     */
+    public String detectRegionByCoordinate(float x, float y) {
+        PointF pf = getCoordinateOpppsiteToOriginalMap(x, y);
+        String areaName = "";
+        //区域检测
+        for (String key : pathInfoMap.keySet()) {
+            Region region = pathInfoMap.get(key).region;
+            if (region.contains((int) pf.x, (int) pf.y)) {
+                areaName = key;
+                break;
+            }
+        }
+        return areaName;
+    }
+
+    /**
+     * 设置缩放动画时间,默认300毫秒
+     *
+     * @param ms 毫秒
+     */
+    public void setAnimateTime(int ms) {
+        this.animateTime = ms;
+    }
+
+    /**
+     * 是否支持双击缩放操作,默认支持
+     *
+     * @param isSupport
+     */
+    public void isSupportDoubleClickScale(boolean isSupport) {
+        isSupportDoubleScale = isSupport;
+    }
+
+    /**
+     * 设置最大缩放比例（默认为最小的3倍），如果小于默认的最小比例则设置无效
+     *
+     * @param scale
+     */
+    public void setMaxScale(float scale) {
+        if (scale > originalScale) {
+            this.maxScale = scale;
+        }
+    }
+
+    /**
+     * 获得最大的缩放比例
+     *
+     * @return
+     */
+    public float getMaxScale() {
+        return maxScale;
+    }
+
+
+    /**
+     * 获得当前的缩放比例
+     *
+     * @return
+     */
+    public float getCurrentScale() {
+        return scale;
+    }
+
+    /**
+     * 获得最小的缩放比例
+     *
+     * @return
+     */
+    public float getMinScale() {
+        return originalScale;
+    }
+
+    /**
+     * 缩放地图
+     *
+     * @param scale
+     */
+    public void scaleMap(float scale) {
+        mapPathMatrix.postScale(scale, scale, mapOriginalCenterX, mapOriginalCenterY);
+        this.scale *= scale;
+        Log.i(TAG, "onScale: " + scale);
+
+    }
+
+    /**
+     * 平移地图
+     *
+     * @param translateDx
+     * @param translateDy
+     */
+    public void translateMap(float translateDx, float translateDy) {
+        this.translateDx = translateDx;
+        this.translateDy = translateDy;
+    }
+
+
+    /**
+     * 设置中心图标是否可见
+     *
+     * @param isVisible
+     */
+    public void setCenterIconVisibility(boolean isVisible) {
+        isCenterIconVisible = isVisible;
+        // invalidate();
     }
 
     /**
@@ -668,7 +716,6 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         return paths;
 
     }
-
 
     //*************************************反射接口************************************
 
@@ -859,24 +906,6 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         initScaleAndTranslate();
     }
 
-
-    private void initScaleAndTranslate() {
-        screenCenterX = screenWidth / 2f;
-        screenCenterY = screenHeight / 2f;
-        mapOriginalCenterX = mapOriginalWidth / 2f;
-        mapOriginalCenterY = mapOriginalHeight / 2f;
-
-        float scaleX = screenWidth * 1f / mapOriginalWidth;
-        float scaleY = screenHeight * 1f / mapOriginalHeight;
-        minScale = originalScale = scale = Math.min(scaleX, scaleY);// 获得缩放比例最大的那个缩放比，即scaleX和scaleY中小的那个
-        maxScale = originalScale * 3;
-        Log.i(TAG, "onMeasure: " + screenWidth + "*" + screenHeight + "," + scale);
-        originalTranslateDx = translateDx = (screenWidth - mapOriginalWidth) / 2f;
-        originalTranslateDy = translateDy = (screenHeight - mapOriginalHeight) / 2f;
-        mapPathMatrix.setScale(originalScale, originalScale, mapOriginalCenterX, mapOriginalCenterY);
-    }
-
-
     /**
      * 在此处执行绘制过程
      *
@@ -924,9 +953,9 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         canvas.restore();
 
         //绘制中心定位点
-        if (centerIcon != null && isCenterIconVisible) {
+        if (centerIcon != null && isCenterIconVisible && regionDetectMode == REGION_DETECT_MODE_CENTER) {
             canvas.drawBitmap(centerIcon, (screenCenterX - centerIcon.getWidth() / 2f),
-                    centerIconPosition == CENTER_ICON_POSITION_BOTTOM ?
+                    centerIconLocationType == CENTER_ICON_POSITION_BOTTOM ?
                             (screenCenterY - centerIcon.getHeight()) :
                             (screenCenterY - centerIcon.getHeight() / 2f), null);
         }
@@ -938,39 +967,82 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
     }
 
     /**
+     * 初始化区域路径Map
+     */
+    private void initAreaPathMap(@NonNull VectorDrawableCompat vectorDrawableCompat) {
+        if (vectorDrawableCompat == null) {
+            return;
+        }
+        pathInfoMap.clear();
+        HashMap<String, Path> pathsMap = (HashMap<String, Path>) getAllPath(vectorDrawableCompat);
+        for (String key : pathsMap.keySet()) {
+            MapPathInfo mapPathInfo = new MapPathInfo(pathsMap.get(key));
+            pathInfoMap.put(key, mapPathInfo);
+        }
+    }
+
+    private void initPaint() {
+        paint.setColor(Color.RED);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(2);
+    }
+
+    /**
+     * 初始化原始的缩放和位移等相关变量
+     */
+    private void initScaleAndTranslate() {
+        screenCenterX = screenWidth / 2f;
+        screenCenterY = screenHeight / 2f;
+        mapOriginalCenterX = mapOriginalWidth / 2f;
+        mapOriginalCenterY = mapOriginalHeight / 2f;
+
+        float scaleX = screenWidth * 1f / mapOriginalWidth;
+        float scaleY = screenHeight * 1f / mapOriginalHeight;
+        minScale = originalScale = scale = Math.min(scaleX, scaleY);// 获得缩放比例最大的那个缩放比，即scaleX和scaleY中小的那个
+        maxScale = originalScale * 3;
+        Log.i(TAG, "onMeasure: " + screenWidth + "*" + screenHeight + "," + scale);
+        originalTranslateDx = translateDx = (screenWidth - mapOriginalWidth) / 2f;
+        originalTranslateDy = translateDy = (screenHeight - mapOriginalHeight) / 2f;
+        mapPathMatrix.setScale(originalScale, originalScale, mapOriginalCenterX, mapOriginalCenterY);
+    }
+
+    /**
      * 区域检测
      */
     private void areaDetect() {
-        if (!isOpenCenterLocation) {
+        if (!isOpenCenterLocation || regionDetectMode != REGION_DETECT_MODE_CENTER) {
             return;
         }
-
-        //区域检测
         currentKey = "";
-        boolean hasDetected = false;
+        boolean isActivate = false;
+        //区域检测
         for (String key : pathInfoMap.keySet()) {
             Region region = pathInfoMap.get(key).region;
-            if (region.contains((int) getMapCentrCoordinate().x, (int) getMapCentrCoordinate().y)) {
-                hasDetected = true;
+            if (onRegionListener == null && pathInfoMap.get(key).isActivated == false) {
+                continue;
+            }
+            if (region.contains((int) getMapCenterOppositeCoordinate().x, (int) getMapCenterOppositeCoordinate().y)) {
                 Log.i(TAG, "选中了 " + key);
-                if (onRegionListener != null && !lastKey.equals(key)) {
-                    onRegionListener.onRegionDetecte(key);
-                }
-                if (onActivateRegionListener != null
-                        && pathInfoMap.get(key).isActivated
-                        && !lastKey.equals(key)) {
-                    onActivateRegionListener.onActivateRegionDetecte(key);
-                }
                 currentKey = key;
-                lastKey = currentKey;
+                isActivate = pathInfoMap.get(key).isActivated;
                 break;
             }
         }
-        lastKey = currentKey;
-        if (onRegionListener != null && hasDetected == false) {
-            onRegionListener.onRegionDetecte("");
+        if (onRegionListener != null) {
+            if (!lastKey.equals(currentKey)) {
+                onRegionListener.onRegionDetect(currentKey);
+            }
+
         }
+        if (onActivateRegionListener != null) {
+            if (!lastKey.equals(currentKey)) {
+                onActivateRegionListener.onActivateRegionDetect(isActivate ? currentKey : "");
+            }
+
+        }
+        lastKey = currentKey;
     }
+
 
     /**
      * 获得中心定位点在地图起始位置的相对坐标
@@ -978,7 +1050,7 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
      *
      * @return
      */
-    private PointF getMapCentrCoordinate() {
+    private PointF getMapCenterOppositeCoordinate() {
 
         PointF mapCenter = getMapCenterCoordinate();
         //中心定位点与实际地图中点的差值
@@ -991,6 +1063,29 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         float y = mapOriginalCenterY + dy / scale;
         return new PointF(x, y);
     }
+
+    /**
+     * 获得指定点在起始地图的相对坐标
+     * 主要用于区域检测
+     *
+     * @param x 绝对坐标x
+     * @param y 绝对坐标y
+     * @return
+     */
+    private PointF getCoordinateOpppsiteToOriginalMap(float x, float y) {
+
+        PointF mapCenter = getMapCenterCoordinate();
+        //中心定位点与实际地图中点的差值
+        float dx = x - mapCenter.x;
+        float dy = y - mapCenter.y;
+
+        //根据位移的差值和缩放比例计算中心定位点在地图起始位置的相对坐标
+        //主要用于区域检测
+        float ox = mapOriginalCenterX + dx / scale;
+        float oy = mapOriginalCenterY + dy / scale;
+        return new PointF(ox, oy);
+    }
+
 
     /**
      * 获得实际地图（即经过平移和缩放后的地图）的中心坐标
@@ -1118,11 +1213,10 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             Log.i(TAG, "onDoubleTap: ");
+            //双击
             if (!isSupportDoubleScale) {
                 return super.onDoubleTap(e);
             }
-
-
             if (scale >= maxScale) {//缩小为原来的大小
                 if (onDoubleClickListener != null) {
                     onDoubleClickListener.onDoubleClick(SCALE_ZOOMOUT);
@@ -1135,6 +1229,25 @@ public class RegionDetecteSurfaceView extends BaseSurfaceView {
                 animateToTargetScale(maxScale);
             }
             return super.onDoubleTap(e);
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            Log.i(TAG, "onSingleTapConfirmed: " + e.getX() + "," + e.getY());
+            //单击
+            if (regionDetectMode == REGION_DETECT_MODE_CLICK) {
+                String name = detectRegionByCoordinate(e.getX(), e.getY());
+                Log.i(TAG, "key=" + name);
+                if (onRegionListener != null) {
+                    onRegionListener.onRegionDetect(name);
+                }
+                MapPathInfo mapPathInfo = pathInfoMap.get(name);
+                if (mapPathInfo != null && mapPathInfo.isActivated && onActivateRegionListener != null) {
+                    currentKey = name;
+                    onActivateRegionListener.onActivateRegionDetect(name);
+                }
+            }
+            return super.onSingleTapConfirmed(e);
         }
     }
 
