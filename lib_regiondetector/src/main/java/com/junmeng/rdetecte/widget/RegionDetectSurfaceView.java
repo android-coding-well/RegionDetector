@@ -259,11 +259,7 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
      * 将地图合适居中
      */
     public void fitCenter() {
-        scale = originalScale;
-        translateDx = (screenWidth - mapOriginalWidth) / 2f;
-        translateDy = (screenHeight - mapOriginalHeight) / 2f;
-        mapPathMatrix.setScale(originalScale, originalScale, mapOriginalCenterX, mapOriginalCenterY);
-        // invalidate();
+        animateToFitCenter();
     }
 
     /**
