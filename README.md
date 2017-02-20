@@ -136,7 +136,7 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
 #### public void setAreaMap(@DrawableRes int map, int originalWidth, int originalHeight);
 
 * 自定义区域地图
-* 格式需要如下：
+* 矢量图格式需要如下：
 
 ```
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -172,7 +172,7 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
 </vector>
 ```
 
-* 其中<path>元素的name和pathData必须设置
+* 其中path元素的name和pathData必须设置
 
 ---
 #### 更多请详看在线文档或源码及参照demo
