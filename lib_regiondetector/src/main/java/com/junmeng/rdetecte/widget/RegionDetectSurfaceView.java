@@ -227,10 +227,10 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
      * 设置区域检测模式(支持中心定位检测和手动点击检测两种)
      * 默认为中心定位检测
      *
-     * @param DetectMode
+     * @param detectMode
      */
-    public void setRegionDetectMode(@RegionDetectMode int DetectMode) {
-        this.regionDetectMode = DetectMode;
+    public void setRegionDetectMode(@RegionDetectMode int detectMode) {
+        this.regionDetectMode = detectMode;
     }
 
     /**
@@ -344,8 +344,8 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
 
     /**
      * 设置区域激活状态
-     *
      * @param areaNameRes
+     * @param isActivated 是否激活
      */
     public void setAreaActivateStatus(@NonNull @StringRes int[] areaNameRes, boolean isActivated) {
         for (int res : areaNameRes) {
