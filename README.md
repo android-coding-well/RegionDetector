@@ -1,8 +1,13 @@
 # RegionDetector
 一个支持灵活设置的不规则区域检测控件
 ---
-![image](https://github.com/huweijian5/SegmentBarDemo/blob/master/screenshots/device-2016-09-28-230043.png)
-在使用此模板前记得将“项目名称”替换我实际的项目名
+![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/QQ%E6%88%AA%E5%9B%BE20170220173408.png)
+
+![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584213.gif)
+
+![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584269.gif)
+
+![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584566.gif)
 ---
 ##介绍说明
 ---
