@@ -102,7 +102,9 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
         });      
 ```
 * 至此最简单的引用方式已经结束了。
+
 ### 常用api说明：
+
 #### public void setRegionDetectMode(@RegionDetectMode int detectMode);
 
 * 可在此设置支持的模式为手动点击模式和中心定位模式
@@ -169,7 +171,9 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
     ......
 </vector>
 ```
+
 * 其中<path>元素的name和pathData必须设置
+
 ---
 #### 更多请详看在线文档或源码及参照demo
  ---
