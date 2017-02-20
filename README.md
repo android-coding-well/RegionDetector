@@ -10,6 +10,7 @@
 ![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584566.gif)
 ---
 ##介绍说明
+
 * 此控件支持不规则区域的识别监测，采用矢量图，有效降低内存，常用来做地图区域识别
 * 支持手动点击模式和中心点定位模式
 * 支持缩放位移操作
@@ -18,6 +19,7 @@
 * 支持自定义矢量图，但需满足一定要求
 * 开放众多接口满足个性化定制
 * ...
+
 ---
 ##使用说明
 * 布局xml中添加：
@@ -74,6 +76,7 @@ binding.rdvDetect.setAreaActivateStatus(areaRes, true);
     <string name="china_ningxia">宁夏</string>
     <string name="china_xinjiang">新疆</string>
     <string name="china_xianggang">香港</string>
+    </resources>
 ```
 * 设置监听器:
 ```
@@ -98,29 +101,41 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
             }
         });      
 ```
-### 至此最简单的引用方式以及结束了。
-### 下面介绍下常用api的说明：
-####  public void setRegionDetectMode(@RegionDetectMode int detectMode);
+* 至此最简单的引用方式已经结束了。
+### 常用api说明：
+#### public void setRegionDetectMode(@RegionDetectMode int detectMode);
+
 * 可在此设置支持的模式为手动点击模式和中心定位模式
 * 手动点击模式符合一般使用习惯，但区域较小时很难点击
 * 中心定位模式则可以较细致的定位，推荐使用，默认也是此模式
+
 ---
 #### public void setCenterIcon(Bitmap bitmap);
+
 * 自定义中心定位图标
+
 ---
 #### public void setCenterIconLocationType(@CenterIconLocationType int locationType);
+
 * 设置中心定位图标的定位位置，支持图标中心和图标底部两种
+
 ---
 #### public void fitCenter();
+
 * 将地图适合屏幕缩放并居中
+
 ---
 #### public void setAreaColor(@NonNull String areaName, @ColorInt int highlightColor, @ColorInt int activatedColor, @ColorInt int normalColor);
+
 * 设置区域高亮颜色，激活颜色和普通颜色
 * 此设置优先级高于默认的颜色，如上图的广东会变成黄色
+
 ---
 #### public void setAreaMap(@DrawableRes int map, int originalWidth, int originalHeight);
+
 * 自定义区域地图
 * 格式需要如下：
+
 ```
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
