@@ -109,35 +109,35 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
 
 ### 常用api说明：
 
-#### public void setRegionDetectMode(@RegionDetectMode int detectMode);
+> public void setRegionDetectMode(@RegionDetectMode int detectMode);
 
 * 可在此设置支持的模式为手动点击模式和中心定位模式
 * 手动点击模式符合一般使用习惯，但区域较小时很难点击
 * 中心定位模式则可以较细致的定位，推荐使用，默认也是此模式
 
 ---
-#### public void setCenterIcon(Bitmap bitmap);
+> public void setCenterIcon(Bitmap bitmap);
 
 * 自定义中心定位图标
 
 ---
-#### public void setCenterIconLocationType(@CenterIconLocationType int locationType);
+> public void setCenterIconLocationType(@CenterIconLocationType int locationType);
 
 * 设置中心定位图标的定位位置，支持图标中心和图标底部两种
 
 ---
-#### public void fitCenter();
+> public void fitCenter();
 
 * 将地图适合屏幕缩放并居中
 
 ---
-#### public void setAreaColor(@NonNull String areaName, @ColorInt int highlightColor, @ColorInt int activatedColor, @ColorInt int normalColor);
+> public void setAreaColor(@NonNull String areaName, @ColorInt int highlightColor, @ColorInt int activatedColor, @ColorInt int normalColor);
 
 * 设置区域高亮颜色，激活颜色和普通颜色
 * 此设置优先级高于默认的颜色，如上图的广东会变成黄色
 
 ---
-#### public void setAreaMap(@DrawableRes int map, int originalWidth, int originalHeight);
+> public void setAreaMap(@DrawableRes int map, int originalWidth, int originalHeight);
 
 * 自定义区域地图
 * 矢量图格式需要如下：
@@ -179,7 +179,7 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
 * 其中path元素的name和pathData必须设置
 
 ---
-#### 更多请详看在线文档或源码及参照demo
+> 更多请详看在线文档或源码及参照demo
  ---
 ## JavaDoc文档
 
