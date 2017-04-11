@@ -9,7 +9,7 @@
 ![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584566.gif)
 
 ---
-##介绍说明
+## 介绍说明
 
 * 此控件支持不规则区域的识别监测，采用矢量图，有效降低内存，常用来做地图区域识别
 * 支持手动点击模式和中心点定位模式
@@ -21,11 +21,11 @@
 * ...
 
 ---
-##原理介绍
+## 原理介绍
 [实现思路介绍](http://blog.csdn.net/huweijian5/article/details/56047587)
 
 ---
-##使用说明
+## 使用说明
 * 布局xml中添加：
 ```
 <com.junmeng.rdetecte.widget.RegionDetectSurfaceView
@@ -202,7 +202,7 @@ dependencies {
 ```
 * 其中latest_version请到[releases](https://github.com/huweijian5/RegionDetector/releases)中查看
 
-##注意
+## 注意
 * 为了避免引入第三方库导致工程依赖多个版本的问题，如android support库
 * 故建议在个人的工程目录下的build.gradle下加入以下变量，具体请看此[build.gradle](https://github.com/huweijian5/RegionDetector/blob/master/build.gradle)
 ```
