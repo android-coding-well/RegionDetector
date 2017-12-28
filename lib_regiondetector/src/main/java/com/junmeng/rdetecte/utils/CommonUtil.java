@@ -13,6 +13,12 @@ import android.os.Build;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 
+import com.junmeng.rdetecte.bean.VectorPathInfo;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by HWJ on 2017/2/19.
  */
@@ -85,5 +91,25 @@ public class CommonUtil {
         drawable.draw(canvas);
 
         return bitmap;
+    }
+
+    /**
+     * 获得路径Map
+     * @param paths
+     * @return
+     */
+    public static Map<String,Path> getPaths(List<VectorPathInfo.PathInfo> paths){
+        Map<String,Path> map=new HashMap<>();
+       if(paths==null){
+           return map;
+       }
+       for(VectorPathInfo.PathInfo info: paths){
+           Path path= PathParser.createPathFromPathData(info.getPathData());
+           if(path==null){
+               path=new Path();
+           }
+           map.put(info.getName(),path);
+       }
+       return map;
     }
 }

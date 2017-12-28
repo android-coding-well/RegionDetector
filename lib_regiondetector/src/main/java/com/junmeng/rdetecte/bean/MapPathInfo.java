@@ -1,4 +1,4 @@
-package com.junmeng.rdetecte;
+package com.junmeng.rdetecte.bean;
 
 import android.graphics.Path;
 import android.graphics.Region;
@@ -6,6 +6,7 @@ import android.graphics.Region;
 import com.junmeng.rdetecte.utils.CommonUtil;
 
 /**
+ * 地图信息
  * Created by HWJ on 2017/2/19.
  */
 

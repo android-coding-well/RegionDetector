@@ -1,26 +1,36 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.junmeng.rdetecte.utils;
 
+import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+
 import android.graphics.Path;
+import android.support.annotation.RestrictTo;
 import android.util.Log;
 
 import java.util.ArrayList;
 
-// This class is a duplicate from the PathParser.java of frameworks/base, with slight
-// update on incompatible API like copyOfRange().
+/**
+ * This class is a duplicate from the PathParser.java of frameworks/base, with slight
+ * update on incompatible API like copyOfRange().
+ *
+ * @hide
+ */
+@RestrictTo(LIBRARY_GROUP)
 public class PathParser {
     private static final String LOGTAG = "PathParser";
 
@@ -132,8 +142,8 @@ public class PathParser {
         }
 
         for (int i = 0; i < nodesFrom.length; i++) {
-            if (nodesFrom[i].type != nodesTo[i].type
-                    || nodesFrom[i].params.length != nodesTo[i].params.length) {
+            if (nodesFrom[i].mType != nodesTo[i].mType
+                    || nodesFrom[i].mParams.length != nodesTo[i].mParams.length) {
                 return false;
             }
         }
@@ -149,9 +159,9 @@ public class PathParser {
      */
     public static void updateNodes(PathDataNode[] target, PathDataNode[] source) {
         for (int i = 0; i < source.length; i++) {
-            target[i].type = source[i].type;
-            for (int j = 0; j < source[i].params.length; j++) {
-                target[i].params[j] = source[i].params[j];
+            target[i].mType = source[i].mType;
+            for (int j = 0; j < source[i].mParams.length; j++) {
+                target[i].mParams[j] = source[i].mParams[j];
             }
         }
     }
@@ -196,7 +206,7 @@ public class PathParser {
      * @return array of floats
      */
     private static float[] getFloats(String s) {
-        if (s.charAt(0) == 'z' | s.charAt(0) == 'Z') {
+        if (s.charAt(0) == 'z' || s.charAt(0) == 'Z') {
             return new float[0];
         }
         try {
@@ -293,18 +303,27 @@ public class PathParser {
      * An array of PathDataNode can represent the whole "d" attribute.
      */
     public static class PathDataNode {
-        /*package*/
-        char type;
-        float[] params;
+
+        /**
+         * @hide
+         */
+        @RestrictTo(LIBRARY_GROUP)
+        public char mType;
+
+        /**
+         * @hide
+         */
+        @RestrictTo(LIBRARY_GROUP)
+        public float[] mParams;
 
         PathDataNode(char type, float[] params) {
-            this.type = type;
-            this.params = params;
+            this.mType = type;
+            this.mParams = params;
         }
 
         PathDataNode(PathDataNode n) {
-            type = n.type;
-            params = copyOfRange(n.params, 0, n.params.length);
+            mType = n.mType;
+            mParams = copyOfRange(n.mParams, 0, n.mParams.length);
         }
 
         /**
@@ -317,8 +336,8 @@ public class PathParser {
             float[] current = new float[6];
             char previousCommand = 'm';
             for (int i = 0; i < node.length; i++) {
-                addCommand(path, current, previousCommand, node[i].type, node[i].params);
-                previousCommand = node[i].type;
+                addCommand(path, current, previousCommand, node[i].mType, node[i].mParams);
+                previousCommand = node[i].mType;
             }
         }
 
@@ -332,15 +351,15 @@ public class PathParser {
          * @param fraction The fraction to interpolate.
          */
         public void interpolatePathDataNode(PathDataNode nodeFrom,
-                                            PathDataNode nodeTo, float fraction) {
-            for (int i = 0; i < nodeFrom.params.length; i++) {
-                params[i] = nodeFrom.params[i] * (1 - fraction)
-                        + nodeTo.params[i] * fraction;
+                PathDataNode nodeTo, float fraction) {
+            for (int i = 0; i < nodeFrom.mParams.length; i++) {
+                mParams[i] = nodeFrom.mParams[i] * (1 - fraction)
+                        + nodeTo.mParams[i] * fraction;
             }
         }
 
         private static void addCommand(Path path, float[] current,
-                                       char previousCmd, char cmd, float[] val) {
+                char previousCmd, char cmd, float[] val) {
 
             int incr = 2;
             float currentX = current[0];
@@ -590,15 +609,15 @@ public class PathParser {
         }
 
         private static void drawArc(Path p,
-                                    float x0,
-                                    float y0,
-                                    float x1,
-                                    float y1,
-                                    float a,
-                                    float b,
-                                    float theta,
-                                    boolean isMoreThanHalf,
-                                    boolean isPositiveArc) {
+                float x0,
+                float y0,
+                float x1,
+                float y1,
+                float a,
+                float b,
+                float theta,
+                boolean isMoreThanHalf,
+                boolean isPositiveArc) {
 
             /* Convert rotation angle from degrees to radians */
             double thetaD = Math.toRadians(theta);
@@ -681,15 +700,15 @@ public class PathParser {
          * @param sweep The angle (positive or negative) of the sweep of the arc on the ellipse
          */
         private static void arcToBezier(Path p,
-                                        double cx,
-                                        double cy,
-                                        double a,
-                                        double b,
-                                        double e1x,
-                                        double e1y,
-                                        double theta,
-                                        double start,
-                                        double sweep) {
+                double cx,
+                double cy,
+                double a,
+                double b,
+                double e1x,
+                double e1y,
+                double theta,
+                double start,
+                double sweep) {
             // Taken from equations at: http://spaceroots.org/documents/ellipse/node8.html
             // and http://www.spaceroots.org/documents/ellipse/node22.html
 
@@ -721,17 +740,15 @@ public class PathParser {
                 double q2x = e2x - alpha * ep2x;
                 double q2y = e2y - alpha * ep2y;
 
-                // Use the extra math below and relative cubicTo function, just to work around
-                // one issue with VM and proguard.
-                final float delta_q1x = (float) q1x - (float) e1x;
-                final float delta_q1y = (float) q1y - (float) e1y;
-                final float delta_q2x = (float) q2x - (float) e1x;
-                final float delta_q2y = (float) q2y - (float) e1y;
-                final float delta_e2x = (float) e2x - (float) e1x;
-                final float delta_e2y = (float) e2y - (float) e1y;
+                // Adding this no-op call to workaround a proguard related issue.
+                p.rLineTo(0, 0);
 
-                p.rCubicTo(delta_q1x, delta_q1y, delta_q2x, delta_q2y, delta_e2x, delta_e2y);
-
+                p.cubicTo((float) q1x,
+                        (float) q1y,
+                        (float) q2x,
+                        (float) q2y,
+                        (float) e2x,
+                        (float) e2y);
                 eta1 = eta2;
                 e1x = e2x;
                 e1y = e2y;

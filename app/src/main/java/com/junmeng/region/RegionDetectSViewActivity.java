@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.junmeng.rdetecte.utils.CommonUtil;
+import com.junmeng.rdetecte.utils.VectorMapParser;
 import com.junmeng.rdetecte.widget.RegionDetectSurfaceView;
 import com.junmeng.region.databinding.ActivityRegionDetectSviewBinding;
 
@@ -38,7 +39,6 @@ public class RegionDetectSViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_region_detect_sview);
-
         binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.OnActivateRegionDetectListener() {
             @Override
             public void onActivateRegionDetect(String name) {
@@ -91,7 +91,7 @@ public class RegionDetectSViewActivity extends AppCompatActivity {
                 binding.rdvDetect.setCenterIcon(CommonUtil.getBitmapFromVectorDrawable(this,R.mipmap.ic_launcher));
                 break;
             case R.id.m_toggle:
-                binding.rdvDetect.setAreaMap(R.drawable.ic_china, 297, 297);
+                binding.rdvDetect.setAreaMap(R.drawable.ic_china);
                 binding.rdvDetect.setAreaActivateStatus(areaRes2, true);
                 binding.rdvDetect.setAreaColor(R.string.china_guangdong, Color.YELLOW, -1, -1);
                 binding.rdvDetect.setDefaultNormalColor(0x8069BBA8);

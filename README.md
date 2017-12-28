@@ -7,6 +7,13 @@
 ![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584213.gif)
 ![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584269.gif)
 ![image](https://github.com/huweijian5/RegionDetector/blob/master/screenshots/device-2017-02-20-174131.mp4_1487584566.gif)
+---
+## 更新说明
+> 1.1.0
+* 去除反射
+* 增加矢量图解析器,路径解析器
+* 兼容8.0
+
 
 ---
 ## 介绍说明
@@ -168,7 +175,7 @@ binding.rdvDetect.setOnActivateRegionDetectListener(new RegionDetectSurfaceView.
     ......
 </vector>
 ```
-* 其中path元素的name和pathData必须设置
+* 其中vector元素的viewportHeight和viewportWidth以及path元素的name和pathData必须设置
 
 ---
 > 更多请详看在线文档或源码及参照demo
@@ -209,11 +216,11 @@ dependencies {
 ext{
     minSdkVersion = 16
     targetSdkVersion = 25
-    compileSdkVersion = 25
-    buildToolsVersion = '25.0.1'
+    compileSdkVersion = 26
+    buildToolsVersion = '26.0.1'
 
     // App dependencies
-    supportLibraryVersion = '25.0.1'
+    supportLibraryVersion = '26.1.0'
     junitVersion = '4.12'
     espressoVersion = '2.2.2'
 }

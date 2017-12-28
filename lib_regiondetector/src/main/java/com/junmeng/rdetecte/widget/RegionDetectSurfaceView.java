@@ -17,7 +17,6 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.graphics.drawable.VectorDrawableCompat;
-import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -26,15 +25,13 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
 import com.junmeng.gdv.detector.MoveGestureDetector;
-import com.junmeng.rdetecte.MapPathInfo;
 import com.junmeng.rdetecte.R;
+import com.junmeng.rdetecte.bean.MapPathInfo;
+import com.junmeng.rdetecte.bean.VectorPathInfo;
 import com.junmeng.rdetecte.utils.CommonUtil;
+import com.junmeng.rdetecte.utils.VectorMapParser;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -119,7 +116,11 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     @RegionDetectMode
     private int regionDetectMode = REGION_DETECT_MODE_CENTER;
 
-    private VectorDrawableCompat vectorDrawableCompat;
+    @Deprecated
+    private VectorDrawableCompat vectorDrawableCompat;//测试时绘制原始地图
+
+    private VectorPathInfo vectorPathInfo;//从xml中解析出的vector信息
+    private VectorMapParser vectorMapParser;
 
     private Paint paint = new Paint();
     private OnRegionDetectListener onRegionListener;
@@ -209,16 +210,16 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     }
 
     private void init(Context context) {
-
         moveGestureDetector = new MoveGestureDetector(context, new MyMoveGestureListener());
         scaleGestureDetector = new ScaleGestureDetector(context, new MyScaleGestureListener());
         gestureDetector = new GestureDetector(context, new MyGestureListener());
-
-        setAreaMap(R.drawable.ic_map_china, 700, 600);
+        vectorMapParser = new VectorMapParser();
+        setAreaMap(R.drawable.ic_map_china);
 
         centerIcon = CommonUtil.getBitmapFromVectorDrawable(context, R.drawable.ic_location_24dp);
 
         initPaint();
+
     }
 
     //******************************************开放接口*****************************************
@@ -344,6 +345,7 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
 
     /**
      * 设置区域激活状态
+     *
      * @param areaNameRes
      * @param isActivated 是否激活
      */
@@ -427,16 +429,18 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     /**
      * 设置区域地图
      *
-     * @param map            vector图
-     * @param originalWidth  原图宽
-     * @param originalHeight 原图高
+     * @param map vector图
      */
-    public void setAreaMap(@DrawableRes int map, int originalWidth, int originalHeight) {
-        this.mapOriginalWidth = originalWidth;
-        this.mapOriginalHeight = originalHeight;
+    public void setAreaMap(@DrawableRes int map) {
+
+        vectorPathInfo = vectorMapParser.parse(getResources(), map);
+        this.mapOriginalWidth = (int) vectorPathInfo.getViewportWidth();
+        this.mapOriginalHeight = (int) vectorPathInfo.getViewportHeight();
         vectorDrawableCompat = VectorDrawableCompat.create(getResources(), map, null);
-        vectorDrawableCompat.setBounds(new Rect(0, 0, mapOriginalWidth, mapOriginalHeight));
-        initAreaPathMap(vectorDrawableCompat);
+        if (vectorDrawableCompat != null) {
+            vectorDrawableCompat.setBounds(new Rect(0, 0, mapOriginalWidth, mapOriginalHeight));
+        }
+        initAreaPathMap();
         initScaleAndTranslate();
         //invalidate();
     }
@@ -617,271 +621,10 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     /**
      * 获得所有VectorDrawableCompat中的所有path,包含第一级组里的path(暂不支持第二级及更深层次的)
      *
-     * @param vectorDrawableCompat
      * @return
      */
-    public Map<String, Path> getAllPath(VectorDrawableCompat vectorDrawableCompat) {
-        Map<String, Path> pathsMap = new HashMap<String, Path>();
-        Object mVectorState = getVectorStateFieldFromVectorDrawableCompatClassByReflect(vectorDrawableCompat);
-        if (mVectorState == null) {
-            return pathsMap;
-        }
-
-        Object mVPathRenderer = getVPathRendererFieldFromVectorDrawableCompatStateClassByReflect(mVectorState);
-        if (mVPathRenderer == null) {
-            return pathsMap;
-        }
-        ArrayMap<String, Object> am = getVGTargetsMapFieldFromVPathRendererClassByReflect(mVPathRenderer);
-        if (am == null) {
-            return pathsMap;
-        }
-        for (String key : am.keySet()) {
-            //Log.i(TAG, "getAllPath: key= " + key + " and value= " + am.get(key).toString());
-            //如果是VFullPath
-            if (am.get(key).toString().contains("VectorDrawableCompat$VFullPath")) {
-                pathsMap.put(key, toPathMethodFromVFullPathSupperClassByReflect(am.get(key)));
-            }
-            //如果是VGroup,VGroup可能包含多个VFullPath
-            if (am.get(key).toString().contains("VectorDrawableCompat$VGroup")) {
-
-                ArrayList<Object> list = getChildrenFieldFromVGroupClassByReflect(am.get(key));
-
-                for (Object object : list) {
-                    //Log.i(TAG, "getAllPath: " + (object.toString()));
-                    if (object.toString().contains("VectorDrawableCompat$VFullPath")) {
-                        pathsMap.put(getPathNameFieldFromVFullPathSupperClassByReflect(object), toPathMethodFromVFullPathSupperClassByReflect(object));
-                    }
-                }
-            }
-        }
-        return pathsMap;
-    }
-
-    /**
-     * 根据名称获得xml中pathData对应的Path对象
-     *
-     * @param pathName xml中的path元素的name属性
-     * @return pathName对应的path
-     */
-    public Path getPathByPathNameFromXML(@NonNull VectorDrawableCompat vectorDrawableCompat, String pathName) {
-        Path path = new Path();
-        try {
-            Object obj = getTargetByNameMethodFromVectorDrawableCompatClassByReflect(vectorDrawableCompat, pathName);
-            //Log.i(TAG, "getPathByPathNameFromXML: " + (obj.toString()));
-
-            if (obj.toString().contains("VectorDrawableCompat$VFullPath")) {
-                path = toPathMethodFromVFullPathSupperClassByReflect(obj);
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "getPathByPathNameFromXML exception");
-            e.printStackTrace();
-
-        }
-        return path;
-    }
-
-    /**
-     * 根据组名获得xml中pathData对应的Path对象
-     *
-     * @param groupName xml中的group元素的name属性
-     * @return
-     */
-    public List<Path> getPathsByGroupNameFromXML(@NonNull VectorDrawableCompat vectorDrawableCompat, String groupName) {
-        List<Path> paths = new ArrayList<Path>();
-        try {
-            Object obj = getTargetByNameMethodFromVectorDrawableCompatClassByReflect(vectorDrawableCompat, groupName);
-            //Log.i(TAG, "getPathsByGroupNameFromXML: " + (obj.toString()));
-
-            if (obj.toString().contains("VectorDrawableCompat$VGroup")) {
-                ArrayList<Object> list = getChildrenFieldFromVGroupClassByReflect(obj);
-
-                for (Object object : list) {
-                    Log.i(TAG, "VGroup: " + (object.toString()));
-                    if (object.toString().contains("VectorDrawableCompat$VFullPath")) {
-                        paths.add(toPathMethodFromVFullPathSupperClassByReflect(object));
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "getPathsByGroupNameFromXML exception");
-            e.printStackTrace();
-
-        }
-        return paths;
-
-    }
-
-    //*************************************反射接口************************************
-
-    /**
-     * 反射获得VFullPath的父类VPath的toPath方法
-     *
-     * @param vFullPath
-     * @return
-     */
-    private Path toPathMethodFromVFullPathSupperClassByReflect(Object vFullPath) {
-        Path path = new Path();
-        try {
-            //获得父类VPath
-            Class vPathClass = Class.forName(vFullPath.getClass().getSuperclass().getName());
-            //反射出父类中的私有方法 toPath
-            Method toPathMethod = vPathClass.getDeclaredMethod("toPath", Path.class);
-            toPathMethod.invoke(vFullPath, path);
-        } catch (Exception e) {
-            Log.e(TAG, "toPathFromVFullPathByReflect exception");
-            e.printStackTrace();
-        }
-        return path;
-    }
-
-    /**
-     * 反射获得VGroup.mChildren成员
-     *
-     * @param vGroup VGroup对象
-     * @return
-     */
-    private ArrayList<Object> getChildrenFieldFromVGroupClassByReflect(Object vGroup) {
-        ArrayList<Object> list = new ArrayList<>();
-        try {
-            Class vGroupClass = Class.forName(vGroup.getClass().getName());
-            Field mChildrenField = vGroupClass.getDeclaredField("mChildren");
-            mChildrenField.setAccessible(true);
-            list = (ArrayList<Object>) mChildrenField.get(vGroup);
-        } catch (Exception e) {
-            Log.e(TAG, "getChildrenFromVGroupByReflect exception");
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-
-    /**
-     * 反射执行VectorDrawableCompat.getTargetByName方法
-     *
-     * @param vdc  VectorDrawableCompat对象
-     * @param name xml中的group元素或path元素的name属性
-     * @return
-     */
-    private Object getTargetByNameMethodFromVectorDrawableCompatClassByReflect(VectorDrawableCompat vdc, String name) {
-        if (vdc == null || TextUtils.isEmpty(name)) {
-            return null;
-        }
-        Object obj = null;
-        //反射VectorDrawableCompat类的私有方法 getTargetByName
-        Method getTargetByNameMethod = null;
-        try {
-            getTargetByNameMethod = vdc.getClass().getDeclaredMethod("getTargetByName", String.class);
-            // 设置访问权限
-            getTargetByNameMethod.setAccessible(true);
-            // 执行私有方法
-            obj = getTargetByNameMethod.invoke(vdc, name);
-            //Log.i(TAG, "getTargetByNameFromVectorDrawableCompatByReflect: " + (obj.toString()));
-        } catch (Exception e) {
-            Log.e(TAG, "getTargetByNameFromVectorDrawableCompatByReflect exception");
-            e.printStackTrace();
-        }
-
-        return obj;
-    }
-
-
-    /**
-     * 反射得到VFullPath的父类VPath的成员mPathName
-     *
-     * @param vFullPath
-     * @return
-     */
-    private String getPathNameFieldFromVFullPathSupperClassByReflect(Object vFullPath) {
-        if (vFullPath == null) {
-            return null;
-        }
-        try {
-            Class vPathClass = Class.forName(vFullPath.getClass().getSuperclass().getName());
-            Field mPathNameField = vPathClass.getDeclaredField("mPathName");
-            mPathNameField.setAccessible(true);
-            Object obj = mPathNameField.get(vFullPath);
-            if (obj != null) {
-                return (String) obj;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "getPathNameFromVFullPathClassByReflect exception");
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-    /**
-     * 反射得到VPathRenderer的成员mVGTargetsMap
-     *
-     * @param vPathRender VPathRenderer的实例对象
-     * @return
-     */
-    private ArrayMap<String, Object> getVGTargetsMapFieldFromVPathRendererClassByReflect(Object vPathRender) {
-        if (vPathRender == null) {
-            return null;
-        }
-        try {
-            Class vPathRendererClass = Class.forName(vPathRender.getClass().getName());
-            Field mVGTargetsMapField = vPathRendererClass.getDeclaredField("mVGTargetsMap");
-            mVGTargetsMapField.setAccessible(true);
-            ArrayMap<String, Object> mVGTargetsMap = (ArrayMap<String, Object>) mVGTargetsMapField.get(vPathRender);
-            return mVGTargetsMap;
-        } catch (Exception e) {
-            Log.e(TAG, "getVGTargetsMapFieldFromVPathRendererClassByReflect exception");
-            e.printStackTrace();
-        }
-        return null;
-
-    }
-
-    /**
-     * 反射得到VectorDrawableCompatState的成员mVPathRenderer
-     *
-     * @param vectorDrawableCompatState VectorDrawableCompatStat的实例对象
-     * @return
-     */
-    private Object getVPathRendererFieldFromVectorDrawableCompatStateClassByReflect(Object vectorDrawableCompatState) {
-        if (vectorDrawableCompatState == null) {
-            return null;
-        }
-        try {
-            Class vectorDrawableCompatStateClass = Class.forName(vectorDrawableCompatState.getClass().getName());
-            Field vPathRendererField = vectorDrawableCompatStateClass.getDeclaredField("mVPathRenderer");
-            vPathRendererField.setAccessible(true);
-            Object mVPathRenderer = vPathRendererField.get(vectorDrawableCompatState);
-            return mVPathRenderer;
-        } catch (Exception e) {
-            Log.e(TAG, "getVPathRendererFieldFromVectorDrawableCompatStateClassByReflect exception");
-            e.printStackTrace();
-            return null;
-        }
-
-    }
-
-    /**
-     * 反射得到VectorDrawableCompat的成员mVectorState
-     *
-     * @param vectorDrawableCompat VectorDrawableCompat的实例对象
-     * @return
-     */
-    private Object getVectorStateFieldFromVectorDrawableCompatClassByReflect(VectorDrawableCompat vectorDrawableCompat) {
-        if (vectorDrawableCompat == null) {
-            return null;
-        }
-        try {
-            Class vectorDrawableCompatClass = Class.forName(vectorDrawableCompat.getClass().getName());
-            Field mVectorStateField = vectorDrawableCompatClass.getDeclaredField("mVectorState");
-            mVectorStateField.setAccessible(true);
-            Object mVectorState = mVectorStateField.get(vectorDrawableCompat);
-            return mVectorState;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
+    public Map<String, Path> getAllPath() {
+        return CommonUtil.getPaths(vectorPathInfo.getPaths());
     }
 
 
@@ -915,8 +658,10 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
 
         //绘制地图各省市
         paint.setColor(Color.GRAY);
-        for (String key : pathInfoMap.keySet()) {
-            MapPathInfo mapPathInfo = pathInfoMap.get(key);
+        Map<String, MapPathInfo> copyMap = new HashMap<>();//复制一份，防止引发ConcurrentModificationException
+        copyMap.putAll(pathInfoMap);
+        for (String key : copyMap.keySet()) {
+            MapPathInfo mapPathInfo = copyMap.get(key);
             Path path = new Path();
             path.addPath(mapPathInfo.path, mapPathMatrix);
 
@@ -965,12 +710,9 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     /**
      * 初始化区域路径Map
      */
-    private void initAreaPathMap(@NonNull VectorDrawableCompat vectorDrawableCompat) {
-        if (vectorDrawableCompat == null) {
-            return;
-        }
+    private void initAreaPathMap() {
         pathInfoMap.clear();
-        HashMap<String, Path> pathsMap = (HashMap<String, Path>) getAllPath(vectorDrawableCompat);
+        HashMap<String, Path> pathsMap = (HashMap<String, Path>) getAllPath();
         for (String key : pathsMap.keySet()) {
             MapPathInfo mapPathInfo = new MapPathInfo(pathsMap.get(key));
             pathInfoMap.put(key, mapPathInfo);
@@ -1105,7 +847,9 @@ public class RegionDetectSurfaceView extends BaseSurfaceView {
     private void drawDebugView(Canvas canvas) {
 
         //绘制原始地图
-        vectorDrawableCompat.draw(canvas);
+        if (vectorDrawableCompat != null) {
+            vectorDrawableCompat.draw(canvas);
+        }
 
         paint.setColor(Color.BLACK);
         paint.setTextSize(30);
