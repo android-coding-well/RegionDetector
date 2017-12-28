@@ -29,7 +29,7 @@
 
 ---
 ## 原理介绍
-[实现思路介绍](http://blog.csdn.net/huweijian5/article/details/56047587)
+[实现思路介绍](http://blog.csdn.net/huweijian5/article/details/78921793)
 
 ---
 ## 使用说明
